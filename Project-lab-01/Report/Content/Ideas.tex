@@ -1,0 +1,75 @@
+\section{Ý tưởng thực hiện và mô tả các hàm}
+%----------------------------
+\subsection{Thuật toán K-means}
+\subsubsection{Tổng quan về K-means}
+\begin{itemize}
+	\item \textbf{K-means là gì?} \par
+	K-means là thuật toán không giám sát nổi tiếng dùng để phần vùng bộ tập dữ liệu thành k phân cụm cho trước. Mục tiêu của thuật toán này bao gồm: [1]
+	\begin{enumerate}
+		\item Đưa các điểm dữ liệu trong bộ dữ liệu vào các phân cụm
+		\item Các điểm dữ liệu trong cùng một phân cụm càng giống nhau càng tốt
+		\item Các điểm phân cụm khác nhau càng khác nhau càng tốt
+	\end{enumerate}
+	Trong đồ án này, chúng ta sẽ sử dụng thuật toán K-means để cài đặt một chương trình có khả năng nén màu của một hình ảnh thành k màu cho trước.
+	\item \textbf{Điều kiện dừng và sự hội tụ}
+	Các tâm cụm hội tụ khi các giá trị tâm cụm mới không thay đổi sau các lần lặp, do đó điều kiện dừng của thuật toán K-means diễn ra dưới các trường hợp sau đây: [1]
+	\begin{enumerate}
+		\item Các tâm cụm mới không thay đổi
+		\item Các điểm dữ liệu nằm trong cùng một phân cụm
+		\item Đat đến số lần lặp tối đa
+	\end{enumerate}
+\end{itemize}
+\subsubsection{Sử dụng K-means trong nén màu hình ảnh}
+\begin{itemize}
+	\item \textbf{Cấu tạo của ảnh:}\par
+	
+	Hình ảnh kỹ thuật số hiện nay được cấu tạo từ các điểm ảnh (pixel) có kích thước height x width với mỗi điểm ảnh có thể được biểu diễn dưới nhiều dạng khác nhau như HEX, RGB, ... [2]
+	
+	Trong đồ án này chúng ta sẽ sử dụng hệ màu RGB, với ba thuộc tính Red, Green, Blue là các số nguyên dương 8 bit bắt đầu từ 0 đến 255. Kết hợp ba thuộc tính ở trên ta có thể tạo ra một điểm ảnh có màu nằm trong $256*256*256 \approx 1.7 \times 10^7$ màu. [2]
+	
+	Dựa vào các ý trên ta có thể phân tích một hình ảnh thành các thành phần nhỏ như sau:
+	\begin{enumerate}
+		\item Một điểm ảnh là một điểm dữ liệu
+		\item Một điểm ảnh chứa 3 thuộc tính (properties) bao gồm 3 channels Red, Green, Blue
+		\item Chiều dài (height) và độ rộng (width) của hình ảnh
+	\end{enumerate}
+	
+	Vậy ta có thể xác định rằng một hình ảnh là một ma trận 3 chiều height x width x channels
+	
+	\item \textbf{Áp dụng K-means vào thuật toán nén ảnh}\par
+	Ý tưởng của thuật toán nén được cài đặt trong đồ án này bao gồm:
+	\begin{enumerate}
+		\item Làm phẳng ma trận điểm ảnh 3 chiều ban đầu height, width, channels trở thành ma trận 2 chiều height x width, channels.
+		\item Khởi tạo giá trị tâm cụm (centroids) ban đầu bằng cách chọn ngẫu nhiên hoặc chọn từ các giá trị RGB của ảnh và khơi tạo một mảng labels nguyên có kích thước height x width dùng để chỉ định pixel nào ứng với tâm cụm nào.
+		\item Tính toán khoảng cách giữa các điểm ảnh và các phân cụm sau đó đưa điểm ảnh vào phân cụm có khoảng cách ngắn nhất so với điểm ảnh đó bằng cách gán nhãn.
+		\item Tính toán lại giá trị tâm cụm (centroids) bằng cách tính trung bình các giá trị được phân loại vào phân cụm tương ứng.
+		\item Sử dụng các giá trị tâm cụm mới này và lặp lại bước 3 cho đến khi đạt đến số vòng lặp tối đa hoặc giá trị tâm cụm mới giống với giá trị tâm cụm cũ (hội tụ).
+		\item Tao ra một ma trận 2 chiều height x width, channels bằng cách gán giá trị tâm cụm ứng với giá trị trong mảng labels và do labels có kích thước height x width, do đó ma trận 2 chiều được tạo mới sẽ có height và width giống với ảnh gốc và chứa các giá trị tâm cụm.
+		\item Reshape ma trận 2 chiều heigh x width, channels này thành ma trận 3 chiều height, width, channels.
+	\end{enumerate}
+	Kết quả trả về là một hình ảnh có kích thước giống kích thước ảnh ban đầu với k màu được nén lại
+\end{itemize}
+
+\subsection{Mô tả các hàn trong chương trình}
+\subsubsection{Các thư viện cần dùng}
+\begin{itemize}
+	\item Các thư viện bắt buộc sử dụng bao gồm:
+	\begin{enumerate}
+		\item Numpy: dùng để tính toán ma trận
+		\item PIL: dùng để đọc, ghi ảnh
+		\item matplotlib: dùng để hiển thị ảnh
+	\end{enumerate}
+	\item Các thư viện được sử dụng để test và viết báo cáo
+	\begin{enumerate}
+		\item Time: dùng để tính toán thời gian thực thi
+		\item BytesIO: dùng để tính kích thước của file hình ảnh
+	\end{enumerate}
+\end{itemize}
+
+\subsubsection{Các hàm trong chương trình}
+\begin{enumerate}
+	\item \textbf{def read-img(img-path):} \par
+	Hàm
+	
+\end{enumerate}
+
