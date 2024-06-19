@@ -1,1 +1,0 @@
-# Applied-Mathematics-2024-HCMUS
